@@ -201,7 +201,7 @@
 </head>
 <body>
 
-<img class="bg-watermark" src="./assets/image/logo_화이트.png" alt="" aria-hidden="true" />
+<img class="bg-watermark" src="./assets/image/logo.png" alt="" aria-hidden="true" />
 
 <nav class="nav" aria-label="Primary">
   <ul class="nav__left">
@@ -277,21 +277,53 @@
     './assets/' + encodeURIComponent('활.glb'),
     (gltf) => {
       const model = gltf.scene;
-      const box = new THREE.Box3().setFromObject(model);
+
+      // Defensive: ensure every mesh has a visible material
+      model.traverse((child) => {
+        if (child.isMesh) {
+          if (!child.material) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.2, roughness: 0.6 });
+          }
+          child.frustumCulled = false;
+        }
+      });
+
+      // 1) Compute original bounds
+      let box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      console.log('[bow] original size:', size, 'maxDim:', maxDim);
+
+      // 2) Scale to fit (target ~1.6 units across the largest dimension)
+      const scale = maxDim > 0 ? 1.6 / maxDim : 1;
+      model.scale.setScalar(scale);
+
+      // 3) Re-measure AFTER scaling, then recenter at world origin
+      box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
       model.position.sub(center);
-      const maxDim = Math.max(size.x, size.y, size.z);
-      model.scale.setScalar(1.6 / maxDim);
+
+      // 4) Frame the camera so the model fits comfortably
+      const fittedBox = new THREE.Box3().setFromObject(model);
+      const fittedSize = fittedBox.getSize(new THREE.Vector3());
+      const fittedMax = Math.max(fittedSize.x, fittedSize.y, fittedSize.z);
+      const fov = camera.fov * (Math.PI / 180);
+      const distance = (fittedMax / 2) / Math.tan(fov / 2) * 1.6; // 1.6 = padding factor
+      camera.position.set(0, 0, distance);
+      camera.lookAt(0, 0, 0);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
       scene.add(model);
       loaderEl.classList.add('is-hidden');
+      console.log('[bow] loaded, fitted size:', fittedSize, 'camera dist:', distance);
     },
     (progress) => {
       if (progress.lengthComputable) {
         pctEl.textContent = Math.round((progress.loaded / progress.total) * 100) + '%';
       }
     },
-    (err) => { console.error(err); pctEl.textContent = 'failed'; }
+    (err) => { console.error('[bow] load error:', err); pctEl.textContent = 'failed'; }
   );
 
   function resize() {
