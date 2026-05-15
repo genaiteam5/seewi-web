@@ -261,16 +261,20 @@
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.enablePan = false;
-  controls.minDistance = 1.2;
-  controls.maxDistance = 6;
+  controls.enableRotate = true;
+  controls.enableZoom = true;
+  controls.enablePan = true;
+  controls.screenSpacePanning = true;
+  controls.minDistance = 0.8;
+  controls.maxDistance = 8;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.6;
+  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
   renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; });
 
   const gltfLoader = new GLTFLoader();
   gltfLoader.load(
-    './assets/' + encodeURIComponent('활수정.glb'),
+    './assets/' + encodeURIComponent('활.glb'),
     (gltf) => {
       const model = gltf.scene;
       const box = new THREE.Box3().setFromObject(model);
