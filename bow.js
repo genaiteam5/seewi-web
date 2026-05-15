@@ -1,37 +1,35 @@
 /* =========================================
-   SEEWI — Three.js bow viewer (GLB)
-   Loads images/활_다시glb.glb via GLTFLoader
+   SEEWI — Three.js viewer factory (GLB)
+   Drives both the Smart Bow and Tracking Device viewers.
+   Listens for `seewi:bow-color` to retint loaded materials.
    ========================================= */
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const container = document.getElementById('bowCanvas');
-const loaderEl  = document.getElementById('bowLoader');
-const pctEl     = document.getElementById('bowPct');
+const log    = (tag, ...a) => console.log(`[SEEWI ${tag}]`, ...a);
+const logErr = (tag, ...a) => console.error(`[SEEWI ${tag}]`, ...a);
 
-const log    = (...a) => console.log('[SEEWI bow]', ...a);
-const logErr = (...a) => console.error('[SEEWI bow]', ...a);
+function createViewer({ tag, canvasEl, loaderEl, pctEl, modelUrl, fitMultiplier = 1.1 }) {
+  if (!canvasEl) return null;
 
-const setLoaderText = (html) => {
-  const t = loaderEl?.querySelector('.bow-loader__text');
-  if (t) t.innerHTML = html;
-};
+  const setLoaderText = (html) => {
+    const t = loaderEl?.querySelector('.bow-loader__text');
+    if (t) t.innerHTML = html;
+  };
 
-if (container) {
-  /* ---- scene ---- */
+  /* scene */
   const scene = new THREE.Scene();
-
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50000);
   camera.position.set(0, 0, 6);
 
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  container.appendChild(renderer.domElement);
+  canvasEl.appendChild(renderer.domElement);
 
-  /* ---- lights ---- */
+  /* lights */
   scene.add(new THREE.HemisphereLight(0xffffff, 0xdedede, 0.75));
 
   const key  = new THREE.DirectionalLight(0xffffff, 1.0);
@@ -46,43 +44,18 @@ if (container) {
   fill.position.set(0, -3, 2);
   scene.add(fill);
 
-  /* ---- controls ---- */
+  /* controls */
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.rotateSpeed = 0.85;
   controls.panSpeed = 0.7;
-
-  /* zoom — mouse wheel + trackpad pinch (macOS trackpad pinch
-     fires wheel events with ctrlKey, handled identically by OrbitControls) */
   controls.enableZoom = true;
   controls.zoomSpeed  = 1.2;
-  controls.zoomToCursor = true;   // zoom toward the cursor position
+  controls.zoomToCursor = true;
   controls.screenSpacePanning = true;
 
-  /* ---- resize ---- */
-  const resize = () => {
-    const rect = container.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-    camera.aspect = rect.width / rect.height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(rect.width, rect.height, false);
-  };
-  resize();
-  window.addEventListener('resize', resize);
-  if ('ResizeObserver' in window) {
-    new ResizeObserver(resize).observe(container);
-  }
-
-  /* ---- render loop ---- */
-  const animate = () => {
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-  };
-  animate();
-
-  /* ---- colour state (driven by bottom-bar swatches) ---- */
+  /* colour state */
   const meshes = [];
   let pendingColor = null;
 
@@ -95,33 +68,41 @@ if (container) {
     });
   };
 
-  document.addEventListener('seewi:bow-color', (e) => {
-    const hex = e.detail?.color;
-    if (typeof hex !== 'number') return;
-    if (meshes.length === 0) {
-      pendingColor = hex;       // model not loaded yet — remember
-    } else {
-      applyColor(hex);
-    }
-  });
+  /* resize */
+  const resize = () => {
+    const rect = canvasEl.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    camera.aspect = rect.width / rect.height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(rect.width, rect.height, false);
+  };
+  resize();
+  window.addEventListener('resize', resize);
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(resize).observe(canvasEl);
+  }
 
-  /* ---- load GLB ---- */
-  const url = 'images/' + encodeURIComponent('활수정.glb');
-  log('Fetching', url);
+  /* render loop */
+  const animate = () => {
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  };
+  animate();
 
+  /* load GLB */
+  log(tag, 'Fetching', modelUrl);
   const gltfLoader = new GLTFLoader();
-
   gltfLoader.load(
-    url,
+    modelUrl,
     (gltf) => {
       const obj = gltf.scene || gltf.scenes?.[0];
       if (!obj) {
         setLoaderText('No scene in GLB.');
         return;
       }
-      log('Parsed GLB:', gltf);
+      log(tag, 'Parsed GLB:', gltf);
 
-      /* keep existing materials from GLB; just tune them slightly to match palette */
       let meshCount = 0;
       obj.traverse((c) => {
         if (c.isMesh) {
@@ -131,19 +112,16 @@ if (container) {
             if ('roughness' in c.material) c.material.roughness = Math.min(1, c.material.roughness ?? 0.6);
             if ('metalness' in c.material) c.material.metalness = Math.min(1, c.material.metalness ?? 0.1);
           }
-          if (c.geometry && !c.geometry.attributes.normal) {
-            c.geometry.computeVertexNormals();
-          }
+          if (c.geometry && !c.geometry.attributes.normal) c.geometry.computeVertexNormals();
           meshes.push(c);
         }
       });
-      log(`Mesh count: ${meshCount}`);
+      log(tag, `Mesh count: ${meshCount}`);
       if (meshCount === 0) {
         setLoaderText('No mesh in GLB.');
         return;
       }
 
-      /* apply any swatch picked while the model was still loading */
       if (pendingColor !== null) {
         applyColor(pendingColor);
         pendingColor = null;
@@ -153,7 +131,7 @@ if (container) {
       const box = new THREE.Box3().setFromObject(obj);
       const size = box.getSize(new THREE.Vector3());
       const centre = box.getCenter(new THREE.Vector3());
-      log('Bounding size:', size.toArray(), 'centre:', centre.toArray());
+      log(tag, 'Bounding size:', size.toArray(), 'centre:', centre.toArray());
       obj.position.sub(centre);
       obj.rotation.set(0, Math.PI * 0.05, 0);
       scene.add(obj);
@@ -161,10 +139,10 @@ if (container) {
       /* fit camera */
       const sphere = new THREE.Sphere();
       box.getBoundingSphere(sphere);
-      log('Bounding sphere radius:', sphere.radius);
+      log(tag, 'Bounding sphere radius:', sphere.radius);
 
       const fov = camera.fov * (Math.PI / 180);
-      const dist = (sphere.radius / Math.sin(fov / 2)) * 1.1;
+      const dist = (sphere.radius / Math.sin(fov / 2)) * fitMultiplier;
       camera.position.set(0, 0, dist);
       camera.near = Math.max(0.01, dist / 500);
       camera.far  = dist * 50;
@@ -174,12 +152,11 @@ if (container) {
       controls.maxDistance = dist * 10;
       controls.update();
 
-      /* fade loader out */
       if (loaderEl) {
         loaderEl.classList.add('is-hidden');
         setTimeout(() => loaderEl.remove(), 800);
       }
-      log('Done.');
+      log(tag, 'Done.');
     },
     (xhr) => {
       if (xhr.lengthComputable && pctEl) {
@@ -187,8 +164,45 @@ if (container) {
       }
     },
     (err) => {
-      logErr('GLB load failed:', err);
+      logErr(tag, 'GLB load failed:', err);
       setLoaderText('Failed to load model. See console.');
     }
   );
+
+  return {
+    applyColor: (hex) => {
+      if (meshes.length === 0) pendingColor = hex;
+      else applyColor(hex);
+    },
+  };
 }
+
+/* ---- Instantiate both viewers ---- */
+const viewers = [];
+
+const bowViewer = createViewer({
+  tag:       'bow',
+  canvasEl:  document.getElementById('bowCanvas'),
+  loaderEl:  document.getElementById('bowLoader'),
+  pctEl:     document.getElementById('bowPct'),
+  modelUrl:  'images/' + encodeURIComponent('활수정.glb'),
+  fitMultiplier: 1.1,
+});
+if (bowViewer) viewers.push(bowViewer);
+
+const trackerViewer = createViewer({
+  tag:       'tracker',
+  canvasEl:  document.getElementById('trackerCanvas'),
+  loaderEl:  document.getElementById('trackerLoader'),
+  pctEl:     document.getElementById('trackerPct'),
+  modelUrl:  'images/' + encodeURIComponent('깍지.glb'),
+  fitMultiplier: 1.1,
+});
+if (trackerViewer) viewers.push(trackerViewer);
+
+/* ---- Shared colour event — both viewers respond ---- */
+document.addEventListener('seewi:bow-color', (e) => {
+  const hex = e.detail?.color;
+  if (typeof hex !== 'number') return;
+  viewers.forEach((v) => v.applyColor(hex));
+});
