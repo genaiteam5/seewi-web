@@ -307,7 +307,7 @@
       const sphere = new THREE.Sphere();
       box.getBoundingSphere(sphere);
       const fov = camera.fov * (Math.PI / 180);
-      const dist = (sphere.radius / Math.sin(fov / 2)) * 1.1;
+      const dist = (sphere.radius / Math.sin(fov / 2)) * 0.75;
       camera.position.set(0, 0, dist);
       camera.near = Math.max(0.01, dist / 500);
       camera.far  = dist * 50;
