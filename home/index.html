@@ -201,7 +201,7 @@
 </head>
 <body>
 
-<img class="bg-watermark" src="./assets/image/logo.png" alt="" aria-hidden="true" />
+<img class="bg-watermark" src="./assets/image/logo_블랙.png" alt="" aria-hidden="true" />
 
 <nav class="nav" aria-label="Primary">
   <ul class="nav__left">
@@ -240,87 +240,89 @@
   const loaderEl = document.getElementById('bowLoader');
   const pctEl = document.getElementById('bowPct');
 
+  // Match working pattern from seewi-web/bow.js
   const scene = new THREE.Scene();
   scene.background = null;
-  const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
-  camera.position.set(0, 0, 3);
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50000);
+  camera.position.set(0, 0, 6);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
   stage.appendChild(renderer.domElement);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const key = new THREE.DirectionalLight(0xffffff, 1.2);
-  key.position.set(2, 3, 4); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.5);
-  rim.position.set(-3, 1, -2); scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xdedede, 0.75));
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(3, 4, 5); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.55);
+  rim.position.set(-4, 2, -3); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.30);
+  fill.position.set(0, -3, 2); scene.add(fill);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.enableRotate = true;
+  controls.rotateSpeed = 0.85;
+  controls.panSpeed = 0.7;
   controls.enableZoom = true;
-  controls.enablePan = true;
+  controls.zoomSpeed = 1.2;
+  controls.zoomToCursor = true;
   controls.screenSpacePanning = true;
-  controls.minDistance = 0.8;
-  controls.maxDistance = 8;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.6;
-  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
   renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; });
 
   const gltfLoader = new GLTFLoader();
   gltfLoader.load(
     './assets/' + encodeURIComponent('활.glb'),
     (gltf) => {
-      const model = gltf.scene;
+      const obj = gltf.scene || gltf.scenes?.[0];
+      if (!obj) { pctEl.textContent = 'no scene'; return; }
+      console.log('[bow] parsed:', gltf);
 
-      // Defensive: ensure every mesh has a visible material
-      model.traverse((child) => {
-        if (child.isMesh) {
-          if (!child.material) {
-            child.material = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.2, roughness: 0.6 });
+      let meshCount = 0;
+      obj.traverse((c) => {
+        if (c.isMesh) {
+          meshCount++;
+          if (c.material) {
+            const mats = Array.isArray(c.material) ? c.material : [c.material];
+            mats.forEach((m) => { m.side = THREE.DoubleSide; m.needsUpdate = true; });
           }
-          child.frustumCulled = false;
+          if (c.geometry && !c.geometry.attributes.normal) c.geometry.computeVertexNormals();
         }
       });
+      console.log('[bow] meshes:', meshCount);
+      if (meshCount === 0) { pctEl.textContent = 'no mesh'; return; }
 
-      // 1) Compute original bounds
-      let box = new THREE.Box3().setFromObject(model);
+      // Center
+      const box = new THREE.Box3().setFromObject(obj);
       const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
-      console.log('[bow] original size:', size, 'maxDim:', maxDim);
-
-      // 2) Scale to fit (target ~1.6 units across the largest dimension)
-      const scale = maxDim > 0 ? 1.6 / maxDim : 1;
-      model.scale.setScalar(scale);
-
-      // 3) Re-measure AFTER scaling, then recenter at world origin
-      box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
-      model.position.sub(center);
+      console.log('[bow] size:', size.toArray(), 'center:', center.toArray());
+      obj.position.sub(center);
+      obj.rotation.set(0, Math.PI * 0.05, 0);
+      scene.add(obj);
 
-      // 4) Frame the camera so the model fits comfortably
-      const fittedBox = new THREE.Box3().setFromObject(model);
-      const fittedSize = fittedBox.getSize(new THREE.Vector3());
-      const fittedMax = Math.max(fittedSize.x, fittedSize.y, fittedSize.z);
+      // Fit camera using bounding sphere
+      const sphere = new THREE.Sphere();
+      box.getBoundingSphere(sphere);
       const fov = camera.fov * (Math.PI / 180);
-      const distance = (fittedMax / 2) / Math.tan(fov / 2) * 1.6; // 1.6 = padding factor
-      camera.position.set(0, 0, distance);
-      camera.lookAt(0, 0, 0);
+      const dist = (sphere.radius / Math.sin(fov / 2)) * 1.1;
+      camera.position.set(0, 0, dist);
+      camera.near = Math.max(0.01, dist / 500);
+      camera.far  = dist * 50;
+      camera.updateProjectionMatrix();
       controls.target.set(0, 0, 0);
+      controls.minDistance = sphere.radius * 0.2;
+      controls.maxDistance = dist * 10;
       controls.update();
 
-      scene.add(model);
       loaderEl.classList.add('is-hidden');
-      console.log('[bow] loaded, fitted size:', fittedSize, 'camera dist:', distance);
+      console.log('[bow] sphere radius:', sphere.radius, 'cam dist:', dist);
     },
-    (progress) => {
-      if (progress.lengthComputable) {
-        pctEl.textContent = Math.round((progress.loaded / progress.total) * 100) + '%';
+    (xhr) => {
+      if (xhr.lengthComputable) {
+        pctEl.textContent = Math.round((xhr.loaded / xhr.total) * 100) + '%';
       }
     },
     (err) => { console.error('[bow] load error:', err); pctEl.textContent = 'failed'; }
