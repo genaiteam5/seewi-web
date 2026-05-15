@@ -106,7 +106,7 @@ if (container) {
   });
 
   /* ---- load GLB ---- */
-  const url = 'images/' + encodeURIComponent('활_다시glb.glb');
+  const url = 'images/' + encodeURIComponent('활수정.glb');
   log('Fetching', url);
 
   const gltfLoader = new GLTFLoader();
