@@ -52,45 +52,10 @@
     });
   });
 
-  /* ---- CUSTOMIZATION sliders → preview ---- */
-  const root = document.documentElement;
-  const breathLine = document.getElementById('breathLine');
-
-  const applySlider = (key, value) => {
-    const n = Number(value);
-    const out = document.querySelector(`output[data-out="${key}"]`);
-    if (out) out.textContent = String(n);
-
-    if (key === 'breath') {
-      root.style.setProperty('--preview-breath', String(0.2 + (n / 100) * 0.8));
-      if (breathLine) {
-        const mag = 4 + (n / 100) * 22;
-        breathLine.style.transform = `translateY(${mag}px)`;
-      }
-    }
-    if (key === 'aim')      root.style.setProperty('--preview-aim',      String(n / 100));
-    if (key === 'contrast') root.style.setProperty('--preview-contrast', String(0.15 + (n / 100) * 0.7));
-  };
-
-  document.querySelectorAll('[data-slider]').forEach((s) => {
-    applySlider(s.dataset.slider, s.value);
-    s.addEventListener('input', (e) => applySlider(s.dataset.slider, e.target.value));
-  });
-
-  /* ---- breathing oscillation on preview line ---- */
-  if (breathLine && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    let up = true;
-    setInterval(() => {
-      const v = Number(document.querySelector('[data-slider="breath"]')?.value ?? 50);
-      const mag = 4 + (v / 100) * 22;
-      breathLine.style.transform = `translateY(${up ? -mag : mag}px)`;
-      up = !up;
-    }, 2400);
-  }
 
   /* ---- reveal on scroll ---- */
   const revealEls = [
-    ...document.querySelectorAll('.detail, .product, .features, .customize, .footer__top')
+    ...document.querySelectorAll('.product, .footer__top')
   ];
   revealEls.forEach((el) => el.setAttribute('data-reveal', ''));
 
