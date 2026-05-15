@@ -24,33 +24,7 @@
     });
   }
 
-  /* ---- HERO: cursor parallax on product visual ---- */
-  const heroVisual = document.getElementById('heroVisual');
-  const heroStage  = heroVisual?.querySelector('.visual__stage');
-
-  if (heroVisual && heroStage && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    let tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
-    const tick = () => {
-      cx += (tx - cx) * 0.06;
-      cy += (ty - cy) * 0.06;
-      heroStage.style.transform = `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0)`;
-      if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
-        raf = requestAnimationFrame(tick);
-      } else { raf = null; }
-    };
-    window.addEventListener('mousemove', (e) => {
-      const rect = heroVisual.getBoundingClientRect();
-      const cxx = rect.left + rect.width / 2;
-      const cyy = rect.top + rect.height / 2;
-      tx = ((e.clientX - cxx) / rect.width) * 22;
-      ty = ((e.clientY - cyy) / rect.height) * 22;
-      if (!raf) raf = requestAnimationFrame(tick);
-    }, { passive: true });
-    document.addEventListener('mouseleave', () => {
-      tx = 0; ty = 0;
-      if (!raf) raf = requestAnimationFrame(tick);
-    });
-  }
+  /* HERO parallax disabled — Three.js OrbitControls handles bow interaction now. */
 
   /* ---- thumbnail row + colour swatches ---- */
   document.querySelectorAll('.detail__thumbs .thumb').forEach((t, _, all) => {
@@ -59,10 +33,22 @@
       t.classList.add('is-active');
     });
   });
+  const SWATCH_COLOR = {
+    'swatch--ash':   0xffffff, // pure white
+    'swatch--stone': 0x2a2a2a, // deep charcoal
+    'swatch--clay':  0xA52020, // accent red
+  };
+
   document.querySelectorAll('.bottombar__variants .swatch').forEach((s, _, all) => {
     s.addEventListener('click', () => {
       all.forEach((x) => x.classList.remove('is-active'));
       s.classList.add('is-active');
+
+      const key = [...s.classList].find((c) => c in SWATCH_COLOR);
+      if (!key) return;
+      document.dispatchEvent(new CustomEvent('seewi:bow-color', {
+        detail: { color: SWATCH_COLOR[key] },
+      }));
     });
   });
 

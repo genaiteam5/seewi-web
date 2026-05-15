@@ -9,6 +9,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 
@@ -33,117 +42,6 @@
 
 <main id="top">
 
-  <!-- ============== HERO — PRODUCT DETAIL ============== -->
-  <section class="detail">
-
-    <!-- LEFT: large product visual area -->
-    <figure class="detail__visual" id="heroVisual" aria-label="SEEWI System 01">
-      <div class="visual__stage" data-parallax="0.04">
-        <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" class="visual__svg" aria-hidden="true">
-          <defs>
-            <linearGradient id="bowMetal" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="#2b2b2b"/>
-              <stop offset="0.5" stop-color="#191919"/>
-              <stop offset="1" stop-color="#3a3a3a"/>
-            </linearGradient>
-            <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
-              <stop offset="0" stop-color="#191919" stop-opacity="0.18"/>
-              <stop offset="1" stop-color="#191919" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-
-          <!-- ground shadow -->
-          <ellipse cx="300" cy="510" rx="180" ry="14" fill="url(#shadow)"/>
-
-          <!-- bow body -->
-          <path d="M 300 90
-                   C 130 220, 130 380, 300 510"
-                fill="none" stroke="url(#bowMetal)" stroke-width="6" stroke-linecap="round"/>
-          <!-- bow inner highlight -->
-          <path d="M 300 96
-                   C 140 224, 140 376, 300 504"
-                fill="none" stroke="#5a5a5a" stroke-width="1" opacity="0.6"/>
-          <!-- string -->
-          <line x1="300" y1="90" x2="300" y2="510" stroke="#191919" stroke-width="1.1"/>
-          <!-- grip -->
-          <rect x="290" y="282" width="20" height="40" rx="3" fill="#191919"/>
-          <rect x="293" y="286" width="2" height="32" fill="#3a3a3a"/>
-          <!-- arrow -->
-          <line x1="300" y1="302" x2="540" y2="302" stroke="#191919" stroke-width="1.4"/>
-          <polygon points="540,298 552,302 540,306" fill="#A52020"/>
-          <!-- nock -->
-          <circle cx="300" cy="302" r="3" fill="#A52020"/>
-        </svg>
-      </div>
-
-      <!-- thumbnail row -->
-      <div class="detail__thumbs">
-        <button class="thumb is-active" aria-label="View 1"><span></span></button>
-        <button class="thumb" aria-label="View 2"><span></span></button>
-        <button class="thumb" aria-label="View 3"><span></span></button>
-        <button class="thumb" aria-label="View 4"><span></span></button>
-      </div>
-    </figure>
-
-    <!-- RIGHT: editorial detail copy -->
-    <article class="detail__copy">
-
-      <header class="detail__head">
-        <h1 class="detail__title">
-          SEEWI — System 01<br/>
-          A quiet instrument<br/>
-          for the discipline<br/>
-          of Korean archery.
-        </h1>
-      </header>
-
-      <section class="detail__block">
-        <h2 class="block__label">Overview</h2>
-        <p class="block__body">
-          1,200 × 1,800 × 240 mm draw space<br/>
-          Three components — Smart Bow / Smart Glasses / Tracking Device<br/>
-          Composed of AL6061 aluminium, carbon laminate, OLED micro-display<br/>
-          Breath-based feedback in lieu of score rings<br/>
-          Designed and assembled in Seoul
-        </p>
-      </section>
-
-      <section class="detail__block">
-        <h2 class="block__label">Description</h2>
-        <p class="block__body">
-          Minimal yet considered, SEEWI reimagines the discipline of Gukgung as a
-          precise digital practice. A sensor-laden bow reads draw length and tension,
-          a pair of monochrome glasses overlays a breathing horizon, and a near-invisible
-          finger sensor captures the exact instant of release. The system translates
-          posture, focus, and breath into a quiet measurement — never a score —
-          so that the archer's attention stays with the body. Built for ritual as much
-          as for training, SEEWI invites stillness, repetition, and a slow return to
-          the centred shot.
-        </p>
-      </section>
-
-      <section class="detail__block">
-        <h2 class="block__label">Components</h2>
-        <ul class="block__list">
-          <li><a href="#smart-bow">01 &nbsp; Smart Bow</a></li>
-          <li><a href="#smart-glasses">02 &nbsp; Smart Glasses</a></li>
-          <li><a href="#tracking">03 &nbsp; Tracking Device</a></li>
-          <li><a href="#features">04 &nbsp; Core Features</a></li>
-          <li><a href="#customize">05 &nbsp; Customization</a></li>
-        </ul>
-      </section>
-
-      <section class="detail__block">
-        <h2 class="block__label">Availability</h2>
-        <p class="block__body">
-          In limited production — shipping within 6 – 8 weeks.<br/>
-          Currently sold by appointment from Seoul.
-        </p>
-      </section>
-
-    </article>
-  </section>
-
   <!-- ============== STICKY BOTTOM BAR ============== -->
   <div class="bottombar" role="region" aria-label="Variant selection">
     <div class="bottombar__variants">
@@ -163,20 +61,14 @@
     </div>
 
     <div class="product__grid">
-      <div class="placeholder" data-label="Smart Bow">
-        <div class="placeholder__inner">
-          <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M 200 40 C 80 160, 80 340, 200 460" fill="none" stroke="#191919" stroke-width="1.2"/>
-            <line x1="200" y1="40" x2="200" y2="460" stroke="#191919" stroke-width="0.6" opacity="0.5"/>
-            <line x1="200" y1="250" x2="380" y2="250" stroke="#A52020" stroke-width="1"/>
-            <polygon points="380,247 388,250 380,253" fill="#A52020"/>
-            <line x1="80" y1="250" x2="180" y2="250" stroke="#A52020" stroke-width="0.4" stroke-dasharray="2 3"/>
-            <text x="30" y="246" font-family="Space Mono" font-size="9" fill="#A52020">TENSION</text>
-            <text x="30" y="258" font-family="Space Mono" font-size="9" fill="#A52020">48.2 lb</text>
-            <circle cx="200" cy="250" r="3" fill="#191919"/>
-          </svg>
+      <div class="bow-viewer">
+        <div id="bowCanvas" class="bow-canvas" aria-label="Interactive 3D bow — drag to rotate"></div>
+        <div class="bow-loader" id="bowLoader">
+          <span class="bow-loader__bar"><span></span></span>
+          <span class="bow-loader__text">Loading model · <em id="bowPct">0%</em></span>
         </div>
-        <div class="placeholder__label">[ Image · Bow.01 ]</div>
+        <span class="bow-hint">drag · rotate &nbsp;|&nbsp; scroll · zoom &nbsp;|&nbsp; right-drag · pan</span>
+        <div class="bow-viewer__label">[ 3D · Bow.01 ]</div>
       </div>
 
       <div class="product__copy">
@@ -436,5 +328,6 @@
 </main>
 
 <script src="script.js" defer></script>
+<script type="module" src="bow.js"></script>
 </body>
 </html>

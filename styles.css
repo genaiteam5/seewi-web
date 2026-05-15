@@ -138,15 +138,91 @@ img, svg { max-width: 100%; display: block; }
   padding: 24px var(--pad-x);
 }
 .visual__stage {
-  width: 78%;
-  max-width: 560px;
+  position: relative;
+  width: 92%;
+  max-width: 720px;
   aspect-ratio: 1 / 1;
-  display: grid;
-  place-items: center;
-  transition: transform var(--t-slow);
-  will-change: transform;
 }
 .visual__svg { width: 100%; height: 100%; }
+
+/* ---- 3D bow viewer (Smart Bow section) ---- */
+.bow-viewer {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: transparent;
+}
+.bow-viewer__label {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---- 3D bow canvas ---- */
+.bow-canvas {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+}
+.bow-canvas:active { cursor: grabbing; }
+.bow-canvas canvas { display: block; width: 100% !important; height: 100% !important; }
+
+.bow-hint {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  text-align: right;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.bow-loader {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+}
+.bow-loader.is-hidden { opacity: 0; }
+.bow-loader__bar {
+  display: block;
+  width: 140px;
+  height: 1px;
+  background: var(--hair);
+  position: relative;
+  overflow: hidden;
+}
+.bow-loader__bar span {
+  position: absolute;
+  inset: 0;
+  background: var(--fg);
+  transform: translateX(-100%);
+  animation: bowbar 1.6s ease-in-out infinite;
+}
+@keyframes bowbar {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+.bow-loader__text {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.bow-loader__text em { font-style: normal; color: var(--fg); }
 
 .detail__thumbs {
   display: flex;
@@ -257,8 +333,8 @@ img, svg { max-width: 100%; display: block; }
   transition: border-color var(--t-fast);
 }
 .swatch.is-active span { border-color: rgba(255,255,255,0.6); }
-.swatch--ash   { background: #ededed; }
-.swatch--stone { background: #6b6b6b; }
+.swatch--ash   { background: #ffffff; }
+.swatch--stone { background: #2a2a2a; }
 .swatch--clay  { background: var(--accent); }
 
 .bottombar__price {
