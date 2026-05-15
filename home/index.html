@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SEEWI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: #e3e3e3;
+      color: #111;
+      min-height: 100vh;
+      padding: 0 0 120px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .topnav {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 22px 36px;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      gap: 16px;
+    }
+    .topnav-left { display: flex; gap: 28px; }
+    .topnav a, .topnav span {
+      color: #111;
+      text-decoration: none;
+      font-weight: 400;
+    }
+    .topnav a:hover { opacity: 0.6; }
+    .topnav a.active { font-weight: 700; }
+    .topnav-center {
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      justify-self: center;
+    }
+    .topnav-right {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .page {
+      padding: 14px 44px 0;
+      position: relative;
+    }
+
+    .logo {
+      display: block;
+      height: clamp(56px, 9vw, 120px);
+      width: auto;
+      margin: 0 0 28px;
+    }
+    h2 {
+      font-size: clamp(22px, 3.6vw, 56px);
+      font-weight: 700;
+      line-height: 1.02;
+      letter-spacing: -0.01em;
+      margin: 0;
+      max-width: 1100px;
+      text-transform: uppercase;
+    }
+    .copyright {
+      margin: 14px 0 0;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: rgba(0, 0, 0, 0.55);
+      text-transform: uppercase;
+    }
+
+    .stage {
+      position: absolute;
+      right: 6vw;
+      top: 50%;
+      transform: translateY(-50%);
+      width: min(62vw, 720px);
+      height: min(62vw, 720px);
+    }
+    .stage .ring {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+    .stage .loading {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .cookie {
+      position: fixed;
+      bottom: 24px;
+      left: 44px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      z-index: 10;
+    }
+    .cookie .text {
+      padding: 7px 14px 6px;
+      border: 1px solid #111;
+      border-radius: 999px;
+      background: transparent;
+    }
+    .cookie .text a {
+      color: #111;
+      text-decoration: underline;
+    }
+    .cookie button {
+      padding: 7px 16px 6px;
+      border: 1px solid #111;
+      border-radius: 999px;
+      background: transparent;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+    }
+    .cookie button:hover { background: rgba(0,0,0,0.05); }
+
+    @media (max-width: 900px) {
+      body { padding: 0 0 160px; }
+      .page { padding: 14px 20px 0; }
+      .topnav { padding: 18px 20px; grid-template-columns: 1fr auto; }
+      .topnav-right { display: none; }
+      .topnav-left { gap: 18px; font-size: 13px; }
+      .stage {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        width: 100%;
+        max-width: 480px;
+        height: 80vw;
+        max-height: 480px;
+        margin: 40px auto 0;
+      }
+      .cookie { left: 16px; right: 16px; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav">
+    <nav class="topnav-left">
+      <a href="./index.html" class="active">Home</a>
+      <a href="./product.html">Product</a>
+      <a href="https://genaiteam5.github.io/Gakgung/" target="_blank" rel="noopener noreferrer">Simulation</a>
+    </nav>
+    <span class="topnav-center">SEEWI</span>
+    <a href="https://genaiteam5.github.io/Gakgung/" target="_blank" rel="noopener noreferrer" class="topnav-right">Begin →</a>
+  </header>
+
+  <main class="page">
+    <img class="logo" src="./assets/image/logo.png" alt="SEEWI" />
+    <h2>AIM INWARD,<br>FIND YOUR STILLNESS</h2>
+    <p class="copyright">© 2026 SEЕWI ALL RIGHTS RESERVED</p>
+
+  </main>
+
+  <div class="stage" id="stage">
+    <div class="ring"></div>
+    <div class="loading" id="loading">LOADING MODEL…</div>
+  </div>
+
+  <div class="cookie" id="cookie">
+    <span class="text">THIS WEBSITE USES COOKIES, MORE INFORMATION <a href="#">HERE</a>.</span>
+    <button onclick="document.getElementById('cookie').style.display='none'">ACCEPT</button>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const stage = document.getElementById('stage');
+    const loadingEl = document.getElementById('loading');
+
+    const scene = new THREE.Scene();
+    scene.background = null;
+
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
+    camera.position.set(0, 0, 3);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    stage.appendChild(renderer.domElement);
+
+    // Lighting — neutral studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(2, 3, 4);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.5);
+    rim.position.set(-3, 1, -2);
+    scene.add(rim);
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.minDistance = 1.2;
+    controls.maxDistance = 6;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
+
+    // Pause auto-rotate while interacting
+    renderer.domElement.addEventListener('pointerdown', () => { controls.autoRotate = false; });
+
+    // Load GLB
+    const loader = new GLTFLoader();
+    loader.load(
+      './assets/' + encodeURIComponent('활수정.glb'),
+      (gltf) => {
+        const model = gltf.scene;
+
+        // Center & scale to fit
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center);
+
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 1.6 / maxDim;
+        model.scale.setScalar(scale);
+
+        scene.add(model);
+        loadingEl.style.display = 'none';
+      },
+      (progress) => {
+        if (progress.lengthComputable) {
+          const pct = Math.round((progress.loaded / progress.total) * 100);
+          loadingEl.textContent = `LOADING ${pct}%`;
+        }
+      },
+      (err) => {
+        console.error('GLB load error:', err);
+        loadingEl.textContent = 'MODEL FAILED TO LOAD';
+      }
+    );
+
+    function resize() {
+      const r = stage.getBoundingClientRect();
+      const w = Math.max(1, r.width);
+      const h = Math.max(1, r.height);
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    new ResizeObserver(resize).observe(stage);
+
+    function tick() {
+      requestAnimationFrame(tick);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    tick();
+  </script>
+</body>
+</html>
